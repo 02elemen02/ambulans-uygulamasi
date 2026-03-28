@@ -1,0 +1,412 @@
+:root {
+    --bg-color: #0d1117;
+    --panel-bg: rgba(22, 27, 34, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-primary: #e6edf3;
+    --text-secondary: #7d8590;
+    --accent-blue: #2f81f7;
+    --accent-blue-glow: rgba(47, 129, 247, 0.5);
+    --accent-green: #238636;
+    --accent-red: #da3633;
+    --accent-red-glow: rgba(218, 54, 51, 0.5);
+    --clean-water: #38bdf8;
+    --dirty-water: #9ca3af;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    /* align-items: center, taşan içeriği yukarı ittiği için kaldırıldı veya baslangıca ayarlandı */
+    align-items: flex-start; 
+    overflow-x: hidden;
+    overflow-y: auto; /* Sayfanın aşağı kaydırılmasına izin ver */
+    background-image: radial-gradient(circle at center, #1b222c 0%, var(--bg-color) 100%);
+    padding: 20px 0;
+}
+
+.dashboard-container {
+    width: 100vw;
+    min-height: calc(100vh - 40px);
+    height: auto;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 20px;
+}
+
+/* Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: var(--panel-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.header-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.datetime-display {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent-blue);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background-color: var(--accent-green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent-green);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
+}
+
+/* Telemetry Bar */
+.telemetry-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--panel-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.telemetry-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-width: 180px;
+}
+
+.telemetry-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
+
+.telemetry-data {
+    display: flex;
+    flex-direction: column;
+}
+
+.telemetry-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.telemetry-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.telemetry-value span {
+    color: var(--accent-blue);
+    text-shadow: 0 0 10px var(--accent-blue-glow);
+}
+
+/* Main Content Grid */
+.dashboard-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        overflow-y: auto;
+    }
+    .dashboard-container {
+        height: auto;
+    }
+}
+
+/* Sections */
+section {
+    background: var(--panel-bg);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+section h2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Water Tanks */
+.tank-container {
+    width: 120px;
+    height: 300px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 60px;
+    position: relative;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+    margin-bottom: 20px;
+}
+
+.tank-level {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    transition: height 1s ease-in-out;
+}
+
+.clean-water {
+    background: linear-gradient(to top, #0284c7, #38bdf8);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+.dirty-water {
+    background: linear-gradient(to top, #4b5563, #9ca3af);
+    box-shadow: 0 0 20px rgba(156, 163, 175, 0.3);
+}
+
+/* Waves effect */
+.tank-level::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -50%;
+    width: 200%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    animation: wave 3s infinite linear;
+}
+
+@keyframes wave {
+    0% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(-25%) scaleY(1.2); }
+    100% { transform: translateX(-50%) scaleY(1); }
+}
+
+.tank-glass {
+    position: absolute;
+    top: 0;
+    left: 10%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+    border-radius: 30px 0 0 30px;
+}
+
+.sensor-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.sensor-value span {
+    font-size: 3.5rem;
+}
+
+/* Lamps Grid & Ambulance Visual */
+.lamps-section {
+    justify-content: center;
+    align-items: center;
+}
+
+.ambulance-visual-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
+}
+
+.ambulance-image-container {
+    width: 100%;
+    max-width: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    filter: drop-shadow(0 0 20px rgba(47, 129, 247, 0.2)) drop-shadow(0 0 40px rgba(218, 54, 51, 0.1));
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.ambulance-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 20px;
+}
+
+.overlay-btn {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.overlay-btn:hover {
+    transform: scale(1.1);
+}
+
+.overlay-btn.fan-overlay.active {
+    background: rgba(47, 129, 247, 0.9);
+    border-color: #fff;
+    box-shadow: 0 0 15px var(--accent-blue-glow);
+    animation: spinOverlay 1s linear infinite;
+}
+
+@keyframes spinOverlay {
+    100% { transform: rotate(360deg); }
+}
+
+.overlay-btn.lamp-overlay.active {
+    background: rgba(218, 54, 51, 0.9);
+    border-color: #fff;
+    box-shadow: 0 0 20px var(--accent-red-glow);
+}
+
+.lamps-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.lamp-btn {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    color: var(--text-secondary);
+}
+
+.lamp-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lamp-btn:active {
+    transform: scale(0.95);
+}
+
+.lamp-btn .icon {
+    font-size: 2.5rem;
+    filter: grayscale(100%) opacity(0.5);
+    transition: all 0.3s ease;
+}
+
+.lamp-btn span {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Active State for Lamps */
+.lamp-btn.active {
+    background: rgba(47, 129, 247, 0.1);
+    border-color: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 0 20px var(--accent-blue-glow), inset 0 0 10px var(--accent-blue-glow);
+}
+
+.lamp-btn.active .icon {
+    filter: none;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+}

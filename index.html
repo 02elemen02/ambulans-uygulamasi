@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ambulans Kontrol</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-title-group">
+                <h1>AMBULANS KONTROL SİSTEMİ</h1>
+                <div id="datetimeDisplay" class="datetime-display">Yükleniyor...</div>
+            </div>
+            <div class="status-indicator">
+                <span class="pulse-dot"></span>
+                Sistem Aktif
+            </div>
+        </header>
+
+        <!-- Sensör Değerleri (Telemetri) -->
+        <div class="telemetry-bar">
+            <div class="telemetry-item">
+                <span class="telemetry-icon">🔋</span>
+                <div class="telemetry-data">
+                    <span class="telemetry-label">Akü Voltajı</span>
+                    <span class="telemetry-value"><span id="batteryVolt">12.5</span> V</span>
+                </div>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-icon">☀️</span>
+                <div class="telemetry-data">
+                    <span class="telemetry-label">Solar Voltajı</span>
+                    <span class="telemetry-value"><span id="solarVolt">14.1</span> V</span>
+                </div>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-icon">🌡️</span>
+                <div class="telemetry-data">
+                    <span class="telemetry-label">İç Sıcaklık</span>
+                    <span class="telemetry-value"><span id="temperature">24.5</span> °C</span>
+                </div>
+            </div>
+        </div>
+
+        <main class="dashboard-content">
+            <!-- Left: Clean Water -->
+            <section class="water-section">
+                <h2>Temiz Su</h2>
+                <div class="tank-container">
+                    <div class="tank-level clean-water" id="cleanWaterLevel" style="height: 80%;"></div>
+                    <div class="tank-glass"></div>
+                </div>
+                <div class="sensor-value">
+                    <span id="cleanWaterBar">3.2</span> Bar
+                </div>
+            </section>
+
+            <!-- Middle: Lamps -->
+            <section class="lamps-section">
+                <h2>Aydınlatma Kontrolü</h2>
+                <div class="ambulance-visual-wrapper">
+                    <div class="ambulance-image-container">
+                        <img src="ambulance.png" alt="Ambulans" class="ambulance-image">
+                        
+                        <!-- Görsel Üzerindeki Butonlar -->
+                        <button class="overlay-btn lamp-overlay" data-lamp="1" style="top: 20%; left: 25%;" title="Sol Ön Lamba"></button>
+                        <button class="overlay-btn lamp-overlay" data-lamp="2" style="top: 20%; right: 25%;" title="Sağ Ön Lamba"></button>
+                        <button class="overlay-btn lamp-overlay" data-lamp="3" style="bottom: 20%; left: 25%;" title="Sol Arka Lamba"></button>
+                        <button class="overlay-btn lamp-overlay" data-lamp="4" style="bottom: 20%; right: 25%;" title="Sağ Arka Lamba"></button>
+                        <button class="overlay-btn lamp-overlay tepe" data-lamp="5" style="top: 5%; left: 50%; margin-left: -15px;" title="Tepe Lambası"></button>
+                        <button class="overlay-btn fan-overlay" data-lamp="6" style="top: 45%; left: 50%; margin-left: -15px; margin-top: -15px;" title="Pervane">🌀</button>
+                    </div>
+                    <div class="lamps-grid">
+                        <button class="lamp-btn" data-lamp="1">
+                            <div class="icon">💡</div>
+                            <span>Lamba 1</span>
+                        </button>
+                        <button class="lamp-btn" data-lamp="2">
+                            <div class="icon">💡</div>
+                            <span>Lamba 2</span>
+                        </button>
+                        <button class="lamp-btn" data-lamp="3">
+                            <div class="icon">💡</div>
+                            <span>Lamba 3</span>
+                        </button>
+                        <button class="lamp-btn" data-lamp="4">
+                            <div class="icon">💡</div>
+                            <span>Lamba 4</span>
+                        </button>
+                        <button class="lamp-btn" data-lamp="5">
+                            <div class="icon">💡</div>
+                            <span>Tepe Lamba</span>
+                        </button>
+                        <button class="lamp-btn" data-lamp="6">
+                            <div class="icon">🌀</div>
+                            <span>Pervane</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Dirty Water -->
+            <section class="water-section">
+                <h2>Kirli Su</h2>
+                <div class="tank-container">
+                    <div class="tank-level dirty-water" id="dirtyWaterLevel" style="height: 30%;"></div>
+                    <div class="tank-glass"></div>
+                </div>
+                <div class="sensor-value">
+                    <span id="dirtyWaterBar">1.1</span> Bar
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful');
+            }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

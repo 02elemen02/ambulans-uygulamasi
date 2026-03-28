@@ -1,0 +1,15 @@
+{
+  "name": "Ambulans Kontrol Sistemi",
+  "short_name": "Ambulans Kontrol",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8155/8155551.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
