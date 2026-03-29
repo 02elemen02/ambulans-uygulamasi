@@ -10,36 +10,34 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDateTime();
     setInterval(updateDateTime, 1000);
 
+    // Firebase Ayarları
+    const db = firebase.firestore();
+    const stateRef = db.collection('ambulance').doc('state');
+    
+    // Uygulama açılışında doküman yoksa boş oluştur
+    stateRef.get().then(doc => {
+        if (!doc.exists) {
+            stateRef.set({ lamps: {}, sensors: {} });
+        }
+    });
+
     // Lamba ve Donanım Butonları Mantığı
     const allButtons = document.querySelectorAll('[data-lamp]');
     
     allButtons.forEach(button => {
         button.addEventListener('click', () => {
             const lampId = button.getAttribute('data-lamp');
-            
-            // Aynı data-lamp ID'sine sahip tüm butonları bul (hem görsel üstü hem grid)
-            const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
-            
             // Tıklanan butonun şu anki durumunun tersini alıyoruz
             const willBeActive = !button.classList.contains('active');
             
-            relatedButtons.forEach(btn => {
-                if (willBeActive) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+            // DİKKAT: Artık doğrudan Serial'a yazmıyor veya UI'ı değiştirmiyoruz. 
+            // Sadece Firebase'e "olması gereken durumu" yazıyoruz. 
+            // Firebase tetiklendiğinde UI değişecek ve Arduino'ya komut gidecek.
+            stateRef.set({
+                lamps: {
+                    [lampId]: willBeActive
                 }
-            });
-            
-            console.log(`Donanım ${lampId} durumu: ${willBeActive ? 'AÇIK' : 'KAPALI'}`);
-            
-            // Arduino'ya Serial üzerinden sinyal gönder
-            if (window.arduinoWriter) {
-                const command = `${lampId}_${willBeActive ? 'ON' : 'OFF'}\n`;
-                window.arduinoWriter.write(new TextEncoder().encode(command)).catch(err => {
-                    console.error("Arduino'ya komut gönderilemedi:", err);
-                });
-            }
+            }, { merge: true });
             
             // Haptic feedback (telefon titremesi)
             if (navigator.vibrate) {
@@ -48,16 +46,68 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Simüle Edilmiş Su Tankı Verileri (Sensörden geliyormuş gibi)
-    const cleanWaterLevel = document.getElementById('cleanWaterLevel');
-    const cleanWaterBar = document.getElementById('cleanWaterBar');
-    
-    const dirtyWaterLevel = document.getElementById('dirtyWaterLevel');
-    const dirtyWaterBar = document.getElementById('dirtyWaterBar');
+    let lastLampsState = {};
+
+    // Firebase'den Gerçek Zamanlı Dinleme (onSnapshot)
+    stateRef.onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // Lambaları Senkronize Et
+            if (data.lamps) {
+                Object.keys(data.lamps).forEach(lampId => {
+                    const isActive = data.lamps[lampId];
+                    const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
+                    
+                    relatedButtons.forEach(btn => {
+                        if (isActive) btn.classList.add('active');
+                        else btn.classList.remove('active');
+                    });
+                    
+                    // Eğer bilgisayardaysak (Web Serial bağlıysa) ve durum Firebase'de yeniyse Arduino'ya gönder
+                    if (window.arduinoWriter && lastLampsState[lampId] !== isActive) {
+                        const command = `${lampId}_${isActive ? 'ON' : 'OFF'}\n`;
+                        window.arduinoWriter.write(new TextEncoder().encode(command)).catch(err => {
+                            console.error("Arduino'ya komut gönderilemedi:", err);
+                        });
+                    }
+                    
+                    lastLampsState[lampId] = isActive;
+                });
+            }
+
+            // Sensörleri Senkronize Et (Sadece telefondayken yani Web Serial BAĞLI DEĞİLKEN Firebase'den ekrana yazdırırız)
+            // Bilgisayardaysak zaten veriyi Serial'den sıcağı sıcağına alıp ekrana yazıyoruz.
+            if (!window.arduinoWriter && data.sensors) {
+                if(data.sensors.battery) document.getElementById('batteryVolt').innerText = data.sensors.battery;
+                if(data.sensors.solar) document.getElementById('solarVolt').innerText = data.sensors.solar;
+                if(data.sensors.temp) document.getElementById('temperature').innerText = data.sensors.temp;
+                
+                if(data.sensors.cleanW !== undefined) {
+                    const cW = parseFloat(data.sensors.cleanW);
+                    const cleanWaterBar = document.getElementById('cleanWaterBar');
+                    const cleanWaterLevel = document.getElementById('cleanWaterLevel');
+                    if(cleanWaterBar) cleanWaterBar.innerText = cW.toFixed(1);
+                    if(cleanWaterLevel) cleanWaterLevel.style.height = `${(cW / 5) * 100}%`;
+                }
+                if(data.sensors.dirtyW !== undefined) {
+                    const dW = parseFloat(data.sensors.dirtyW);
+                    const dirtyWaterBar = document.getElementById('dirtyWaterBar');
+                    const dirtyWaterLevel = document.getElementById('dirtyWaterLevel');
+                    if(dirtyWaterBar) dirtyWaterBar.innerText = dW.toFixed(1);
+                    if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${(dW / 5) * 100}%`;
+                }
+            }
+        }
+    });
 
     const batteryVolt = document.getElementById('batteryVolt');
     const solarVolt = document.getElementById('solarVolt');
     const temperature = document.getElementById('temperature');
+    const cleanWaterLevel = document.getElementById('cleanWaterLevel');
+    const cleanWaterBar = document.getElementById('cleanWaterBar');
+    const dirtyWaterLevel = document.getElementById('dirtyWaterLevel');
+    const dirtyWaterBar = document.getElementById('dirtyWaterBar');
 
     // Arduino Web Serial Bağlantısı
     window.arduinoWriter = null;
@@ -77,18 +127,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const port = await navigator.serial.requestPort();
                 await port.open({ baudRate: 9600 });
                 
-                // Butonu bağlandı durumuna getir
                 connectSerialBtn.innerHTML = `<span class="pulse-dot" style="background-color: #2ed573; box-shadow: 0 0 8px rgba(46, 213, 115, 0.6);"></span> Arduino Bağlandı`;
                 connectSerialBtn.style.color = "#2ed573";
                 connectSerialBtn.style.borderColor = "#2ed573";
                 
                 window.arduinoWriter = port.writable.getWriter();
                 
-                // Veri okuma döngüsünü başlat
+                // Başlangıçta mevcut durumu Arduino'ya senkronize et (Firebase'deki son hali)
+                Object.keys(lastLampsState).forEach(lampId => {
+                     const initCmd = `${lampId}_${lastLampsState[lampId] ? 'ON' : 'OFF'}\n`;
+                     window.arduinoWriter.write(new TextEncoder().encode(initCmd)).catch(e=>{});
+                });
+
                 readLoop(port);
             } catch (err) {
                 console.error("Arduino bağlantı hatası:", err);
-                alert("Bağlantı kurulamadı. Arduino'nun USB ile takılı olduğundan ve başka bir programın (Arduino IDE) portu işgal etmediğinden emin olun.");
+                alert("Bağlantı kurulamadı. Arduino'nun takılı olduğundan ve başka bir uygulamanın portu işgal etmediğinden emin olun.");
             }
         });
     }
@@ -108,26 +162,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 buffer += value;
                 const lines = buffer.split('\n');
-                buffer = lines.pop(); // Son bitmemiş satırı buffer'da tut
+                buffer = lines.pop(); 
                 
                 lines.forEach(line => {
                     line = line.trim();
                     if (line.startsWith("DATA:")) {
-                        // Örn: DATA:12.5,14.1,24.5,3.2,1.1
                         const parts = line.replace("DATA:", "").split(",");
                         if (parts.length === 5) {
-                            if(batteryVolt) batteryVolt.innerText = parts[0];
-                            if(solarVolt) solarVolt.innerText = parts[1];
-                            if(temperature) temperature.innerText = parts[2];
+                            const bV = parts[0];
+                            const sV = parts[1];
+                            const tV = parts[2];
+                            const cV = parseFloat(parts[3]);
+                            const dV = parseFloat(parts[4]);
+
+                            if(batteryVolt) batteryVolt.innerText = bV;
+                            if(solarVolt) solarVolt.innerText = sV;
+                            if(temperature) temperature.innerText = tV;
                             
-                            const cleanVal = parseFloat(parts[3]);
-                            const dirtyVal = parseFloat(parts[4]);
+                            if(cleanWaterBar) cleanWaterBar.innerText = cV.toFixed(1);
+                            if(dirtyWaterBar) dirtyWaterBar.innerText = dV.toFixed(1);
                             
-                            if(cleanWaterBar) cleanWaterBar.innerText = cleanVal.toFixed(1);
-                            if(dirtyWaterBar) dirtyWaterBar.innerText = dirtyVal.toFixed(1);
-                            
-                            if(cleanWaterLevel) cleanWaterLevel.style.height = `${(cleanVal / 5) * 100}%`;
-                            if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${(dirtyVal / 5) * 100}%`;
+                            if(cleanWaterLevel) cleanWaterLevel.style.height = `${(cV / 5) * 100}%`;
+                            if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${(dV / 5) * 100}%`;
+
+                            // Sensör verisini telefondan da görülebilmesi için Firebase'e itiyoruz
+                            stateRef.set({
+                                sensors: {
+                                    battery: bV,
+                                    solar: sV,
+                                    temp: tV,
+                                    cleanW: cV,
+                                    dirtyW: dV
+                                }
+                            }, { merge: true });
                         }
                     }
                 });
