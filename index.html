@@ -16,10 +16,10 @@
                 <h1>AMBULANS KONTROL SİSTEMİ</h1>
                 <div id="datetimeDisplay" class="datetime-display">Yükleniyor...</div>
             </div>
-            <div class="status-indicator">
-                <span class="pulse-dot"></span>
-                Sistem Aktif
-            </div>
+            <button id="connectSerialBtn" class="status-indicator" style="cursor: pointer; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white;">
+                <span class="pulse-dot" style="background-color: #ff4757; box-shadow: 0 0 8px rgba(255, 71, 87, 0.6);"></span>
+                Arduino'ya Bağlan
+            </button>
         </header>
 
         <!-- Sensör Değerleri (Telemetri) -->
