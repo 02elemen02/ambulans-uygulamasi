@@ -29,28 +29,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const lampId = button.getAttribute('data-lamp');
             const willBeActive = !button.classList.contains('active');
             
-            console.log(`Tuş tıklandı: ${lampId}, Yeni durum: ${willBeActive}`);
+            console.log("Buton tıklandı:", lampId, "Yeni durum:", willBeActive);
 
-            // HIZLI TEPKİ: Firebase'i beklemeden ekranı hemen güncelle
+            // UI'ı hemen güncelle (Hızlı geri bildirim)
             const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
             relatedButtons.forEach(btn => {
                 if (willBeActive) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
 
-            // Firebase'e gönder
-            stateRef.set({
-                lamps: {
-                    [lampId]: willBeActive
-                }
-            }, { merge: true }).then(() => {
-                console.log("Firebase güncellendi.");
-            }).catch(err => {
-                console.error("Firebase güncelleme hatası:", err);
-                alert("Veri gönderilemedi, internet bağlantınızı veya Firebase ayarlarınızı kontrol edin.");
-            });
+            // Firebase'e gönder (Daha uyumlu yöntemle)
+            var updateObj = { lamps: {} };
+            updateObj.lamps[lampId] = willBeActive;
             
-            // Haptic feedback (telefon titremesi)
+            stateRef.set(updateObj, { merge: true })
+                .then(() => console.log("Firebase güncellendi:", lampId))
+                .catch(err => {
+                    console.error("Firebase Hatası:", err);
+                    // Mobilde hatayı görmek için çok kısa bir uyarı
+                    // alert("Bağlantı hatası: " + err.message);
+                });
+            
+            // Titreşim
             if (navigator.vibrate) {
                 navigator.vibrate(willBeActive ? [50, 50, 50] : 50);
             }
@@ -70,6 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isActive = data.lamps[lampId];
                     const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
                     
+                    // Eğer durum zaten UI ile aynıysa tekrar işlem yapma (Efektlerin bozulmaması için)
+                    const firstBtn = document.querySelector(`[data-lamp="${lampId}"]`);
+                    if (firstBtn && firstBtn.classList.contains('active') === isActive) {
+                        lastLampsState[lampId] = isActive;
+                        return;
+                    }
+
                     relatedButtons.forEach(btn => {
                         if (isActive) btn.classList.add('active');
                         else btn.classList.remove('active');
@@ -77,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Eğer bilgisayardaysak (Web Serial bağlıysa) ve durum Firebase'de yeniyse Arduino'ya gönder
                     if (window.arduinoWriter && lastLampsState[lampId] !== isActive) {
-                        const command = `${lampId}_${isActive ? 'ON' : 'OFF'}\n`;
+                        const command = lampId + "_" + (isActive ? 'ON' : 'OFF') + "\n";
                         window.arduinoWriter.write(new TextEncoder().encode(command)).catch(err => {
                             console.error("Arduino'ya komut gönderilemedi:", err);
                         });
