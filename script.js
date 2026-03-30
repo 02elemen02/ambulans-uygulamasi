@@ -27,17 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
     allButtons.forEach(button => {
         button.addEventListener('click', () => {
             const lampId = button.getAttribute('data-lamp');
-            // Tıklanan butonun şu anki durumunun tersini alıyoruz
             const willBeActive = !button.classList.contains('active');
             
-            // DİKKAT: Artık doğrudan Serial'a yazmıyor veya UI'ı değiştirmiyoruz. 
-            // Sadece Firebase'e "olması gereken durumu" yazıyoruz. 
-            // Firebase tetiklendiğinde UI değişecek ve Arduino'ya komut gidecek.
+            console.log(`Tuş tıklandı: ${lampId}, Yeni durum: ${willBeActive}`);
+
+            // HIZLI TEPKİ: Firebase'i beklemeden ekranı hemen güncelle
+            const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
+            relatedButtons.forEach(btn => {
+                if (willBeActive) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Firebase'e gönder
             stateRef.set({
                 lamps: {
                     [lampId]: willBeActive
                 }
-            }, { merge: true });
+            }, { merge: true }).then(() => {
+                console.log("Firebase güncellendi.");
+            }).catch(err => {
+                console.error("Firebase güncelleme hatası:", err);
+                alert("Veri gönderilemedi, internet bağlantınızı veya Firebase ayarlarınızı kontrol edin.");
+            });
             
             // Haptic feedback (telefon titremesi)
             if (navigator.vibrate) {
