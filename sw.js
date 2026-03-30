@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ambulans-kontrol-v5';
+const CACHE_NAME = 'ambulans-kontrol-v6';
 const urlsToCache = [
   './index.html',
   './style.css',

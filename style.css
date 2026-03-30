@@ -24,27 +24,24 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-primary);
-    margin: 0;
-    padding: 0;
+    width: 100vw;
     height: 100vh;
     height: 100dvh;
     display: flex;
     justify-content: center;
-    align-items: stretch; 
-    overflow-x: hidden;
-    overflow-y: auto;
+    align-items: center;
+    overflow: hidden; 
     background-image: radial-gradient(circle at center, #1b222c 0%, var(--bg-color) 100%);
 }
 
 .dashboard-container {
-    width: 100vw;
+    width: 100%;
     height: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     display: flex;
     flex-direction: column;
-    padding: 10px 20px;
-    gap: 15px;
-    margin: 0 auto;
+    padding: 1.5vh 1.5vw;
+    gap: 1.5vh;
 }
 
 /* Header */
@@ -52,59 +49,63 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 30px;
+    padding: 1.5vh 2vw;
     background: var(--panel-bg);
-    border-radius: 16px;
+    border-radius: 2vh;
     border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-}
-
-.dashboard-header h1 {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 2rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-primary);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0.5vh 3vh rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
 }
 
 .header-title-group {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 0.5vh;
+}
+
+.dashboard-header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 3.5vmin, 2.5rem);
+    letter-spacing: 0.2vw;
+    text-transform: uppercase;
+    text-shadow: 0 0 1vh rgba(255, 255, 255, 0.2);
 }
 
 .datetime-display {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.2rem;
+    font-size: clamp(0.7rem, 2vmin, 1.5rem);
     color: var(--accent-blue);
     font-weight: 700;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px var(--accent-blue-glow);
+    letter-spacing: 0.1vw;
+    text-shadow: 0 0 1vh var(--accent-blue-glow);
 }
 
 .status-indicator {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 1vw;
+    font-size: clamp(0.7rem, 2vmin, 1.2rem);
     font-weight: bold;
     color: var(--text-secondary);
+    padding: 1vh 2vw;
+    border-radius: 1vh;
+    transition: all 0.3s;
 }
 
 .pulse-dot {
-    width: 12px;
-    height: 12px;
+    width: clamp(8px, 1.5vmin, 15px);
+    height: clamp(8px, 1.5vmin, 15px);
     background-color: var(--accent-green);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--accent-green);
+    box-shadow: 0 0 1vh var(--accent-green);
     animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
+    70% { transform: scale(1); box-shadow: 0 0 0 1vh rgba(35, 134, 54, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
 }
 
@@ -114,53 +115,55 @@ body {
     justify-content: space-around;
     align-items: center;
     background: var(--panel-bg);
-    border-radius: 16px;
+    border-radius: 2vh;
     border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
-    padding: 15px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    flex-wrap: wrap;
-    gap: 15px;
+    padding: 1.5vh;
+    box-shadow: 0 0.5vh 3vh rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    gap: 1vw;
 }
 
 .telemetry-item {
     display: flex;
+    flex: 1;
     align-items: center;
-    gap: 15px;
+    justify-content: center;
+    gap: 1.5vw;
     background: rgba(0, 0, 0, 0.3);
-    padding: 10px 20px;
-    border-radius: 12px;
+    padding: 1vh 1vw;
+    border-radius: 1.5vh;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    min-width: 180px;
 }
 
 .telemetry-icon {
-    font-size: 2rem;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+    font-size: clamp(1.2rem, 4vmin, 3rem);
+    filter: drop-shadow(0 0 0.5vh rgba(255, 255, 255, 0.3));
 }
 
 .telemetry-data {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .telemetry-label {
-    font-size: 0.85rem;
+    font-size: clamp(0.5rem, 1.5vmin, 1rem);
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.1vw;
 }
 
 .telemetry-value {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.5rem;
+    font-size: clamp(0.9rem, 2.5vmin, 2rem);
     font-weight: 700;
-    color: var(--text-primary);
 }
 
 .telemetry-value span {
     color: var(--accent-blue);
-    text-shadow: 0 0 10px var(--accent-blue-glow);
+    text-shadow: 0 0 1vh var(--accent-blue-glow);
 }
 
 /* Main Content Grid */
@@ -168,216 +171,49 @@ body {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
-    gap: 15px;
-    height: 100%;
+    gap: 1.5vw;
     min-height: 0;
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 0;
-        margin: 0;
-        height: 100vh;
-        height: 100dvh;
-        align-items: stretch;
-        overflow: hidden;
-    }
-    .dashboard-container {
-        padding: 5px 10px;
-        gap: 5px;
-        width: 100vw;
-        height: 100%;
-        max-height: 100%;
-        min-height: unset;
-        justify-content: flex-start;
-        display: flex;
-        flex-direction: column;
-    }
-    .dashboard-header {
-        padding: 8px 10px;
-        flex-shrink: 0;
-    }
-    .dashboard-header h1 {
-        font-size: min(4.5vw, 1.2rem);
-    }
-    .datetime-display {
-        font-size: min(3.5vw, 0.9rem);
-    }
-    .pulse-dot {
-        width: 8px;
-        height: 8px;
-    }
-    .status-indicator {
-        font-size: min(3.5vw, 0.9rem);
-    }
-    .telemetry-bar {
-        flex-shrink: 0;
-        padding: 8px;
-        gap: 5px;
-        flex-wrap: nowrap;
-    }
-    .telemetry-item {
-        min-width: 0;
-        flex: 1;
-        padding: 5px;
-        gap: 2px;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-    }
-    .telemetry-icon {
-        font-size: min(5vw, 1.3rem);
-        margin-bottom: 2px;
-    }
-    .telemetry-label {
-        font-size: min(3vw, 0.65rem);
-    }
-    .telemetry-value {
-        font-size: min(4vw, 1rem);
-    }
-    .dashboard-content {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1.5fr;
-        gap: 5px;
-        height: 100%;
-        min-height: 0;
-        overflow-y: auto;
-    }
-    .water-section {
-        padding: 5px 10px;
-        grid-row: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        height: 100%;
-    }
-    .water-section:nth-child(1) {
-        grid-column: 1;
-    }
-    .water-section:nth-child(3) {
-        grid-column: 2;
-    }
-    .lamps-section {
-        grid-column: 1 / 3;
-        grid-row: 2;
-        padding: 10px;
-        margin-bottom: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-    section h2 {
-        font-size: min(4.5vw, 1.1rem);
-        margin-bottom: 5px;
-    }
-    .tank-container {
-        width: 30vw;
-        max-width: 80px;
-        flex: 1;
-        min-height: 40px;
-        max-height: 35vh;
-        border-radius: 40px;
-        margin-bottom: 5px;
-    }
-    .sensor-value {
-        font-size: min(3.5vw, 0.9rem);
-    }
-    .sensor-value span {
-        font-size: min(6.5vw, 1.6rem);
-    }
-    .ambulance-visual-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        height: 100%;
-        width: 100%;
-    }
-    .ambulance-image-container {
-        flex: 1;
-        max-width: 40%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .ambulance-image {
-        max-height: 100%;
-        object-fit: contain;
-    }
-    .overlay-btn {
-        width: 25px;
-        height: 25px;
-        font-size: 12px;
-        border-width: 1px;
-    }
-    .lamps-grid {
-        flex: 1.5;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        gap: 6px;
-        height: 100%;
-        max-width: none;
-    }
-    .lamp-btn {
-        padding: 5px;
-        gap: 2px;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-    }
-    .lamp-btn .icon {
-        font-size: min(6vw, 1.6rem);
-    }
-    .lamp-btn span {
-        font-size: min(3.5vw, 0.85rem);
-    }
 }
 
 /* Sections */
 section {
     background: var(--panel-bg);
-    border-radius: 20px;
+    border-radius: 2.5vh;
     border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
-    padding: 20px;
+    padding: 2vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    justify-content: space-between;
+    box-shadow: 0 1vh 3vh rgba(0, 0, 0, 0.3);
+    height: 100%;
+    min-height: 0;
 }
 
 section h2 {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.5rem;
-    margin-bottom: 20px;
+    font-size: clamp(0.9rem, 2.5vmin, 2rem);
+    margin-bottom: 1vh;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.1vw;
+    text-align: center;
 }
 
 /* Water Tanks */
 .tank-container {
-    width: 120px;
+    width: clamp(40px, 12vmin, 150px);
     flex: 1;
-    min-height: 100px;
-    max-height: 300px;
+    min-height: 0;
+    max-height: 40vh;
     background: rgba(0, 0, 0, 0.5);
-    border-radius: 60px;
+    border-radius: 6vh;
     position: relative;
     overflow: hidden;
-    border: 3px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-    margin-bottom: 20px;
+    border: 0.3vh solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 0 2vh rgba(0, 0, 0, 0.8);
+    margin: 1vh 0;
 }
 
 .tank-level {
@@ -389,22 +225,21 @@ section h2 {
 
 .clean-water {
     background: linear-gradient(to top, #0284c7, #38bdf8);
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 2vh rgba(56, 189, 248, 0.5);
 }
 
 .dirty-water {
     background: linear-gradient(to top, #4b5563, #9ca3af);
-    box-shadow: 0 0 20px rgba(156, 163, 175, 0.3);
+    box-shadow: 0 0 2vh rgba(156, 163, 175, 0.3);
 }
 
-/* Waves effect */
 .tank-level::after {
     content: '';
     position: absolute;
-    top: -10px;
+    top: -1vh;
     left: -50%;
     width: 200%;
-    height: 20px;
+    height: 2vh;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     animation: wave 3s infinite linear;
@@ -424,71 +259,77 @@ section h2 {
     height: 100%;
     background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
     pointer-events: none;
-    border-radius: 30px 0 0 30px;
+    border-radius: 3vh 0 0 3vh;
 }
 
 .sensor-value {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 2.5rem;
+    font-size: clamp(0.9rem, 3vmin, 2.5rem);
     font-weight: 700;
     color: #fff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 1vh rgba(255, 255, 255, 0.3);
+    text-align: center;
 }
 
 .sensor-value span {
-    font-size: 3.5rem;
+    font-size: clamp(1.2rem, 4vmin, 4rem);
 }
 
 /* Lamps Grid & Ambulance Visual */
 .lamps-section {
-    justify-content: center;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .ambulance-visual-wrapper {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 30px;
+    justify-content: space-around;
+    gap: 2vw;
     width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
 }
 
 .ambulance-image-container {
-    width: 100%;
-    max-width: 250px;
+    width: 40%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    filter: drop-shadow(0 0 20px rgba(47, 129, 247, 0.2)) drop-shadow(0 0 40px rgba(218, 54, 51, 0.1));
+    position: relative;
+    filter: drop-shadow(0 0 2vh rgba(47, 129, 247, 0.2)) drop-shadow(0 0 4vh rgba(218, 54, 51, 0.1));
     animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
     0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-1vh); }
     100% { transform: translateY(0px); }
 }
 
 .ambulance-image {
-    width: 100%;
-    height: auto;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
-    border-radius: 20px;
 }
 
 .overlay-btn {
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: clamp(15px, 3vmin, 40px);
+    height: clamp(15px, 3vmin, 40px);
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.7);
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 0.2vh solid rgba(255, 255, 255, 0.5);
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 14px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    font-size: clamp(8px, 1.5vmin, 20px);
+    box-shadow: 0 0 1vh rgba(0,0,0,0.8);
     transition: all 0.3s ease;
     z-index: 10;
 }
@@ -500,7 +341,7 @@ section h2 {
 .overlay-btn.fan-overlay.active {
     background: rgba(47, 129, 247, 0.9);
     border-color: #fff;
-    box-shadow: 0 0 15px var(--accent-blue-glow);
+    box-shadow: 0 0 1.5vh var(--accent-blue-glow);
     animation: spinOverlay 1s linear infinite;
 }
 
@@ -511,30 +352,33 @@ section h2 {
 .overlay-btn.lamp-overlay.active {
     background: rgba(218, 54, 51, 0.9);
     border-color: #fff;
-    box-shadow: 0 0 20px var(--accent-red-glow);
+    box-shadow: 0 0 2vh var(--accent-red-glow);
 }
 
 .lamps-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    width: 100%;
-    max-width: 400px;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1.5vh;
+    width: 55%;
+    height: 100%;
+    flex: 1;
 }
 
 .lamp-btn {
     background: rgba(0, 0, 0, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 20px;
+    border: 0.2vh solid rgba(255, 255, 255, 0.1);
+    border-radius: 2vh;
+    padding: 1vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 1vh;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     color: var(--text-secondary);
+    min-height: 0;
 }
 
 .lamp-btn:hover {
@@ -547,29 +391,66 @@ section h2 {
 }
 
 .lamp-btn .icon {
-    font-size: 2.5rem;
+    font-size: clamp(1.2rem, 5vmin, 3.5rem);
     filter: grayscale(100%) opacity(0.5);
     transition: all 0.3s ease;
 }
 
 .lamp-btn span {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.2rem;
+    font-size: clamp(0.7rem, 2vmin, 1.3rem);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.1vw;
+    text-align: center;
+    line-height: 1;
 }
 
-/* Active State for Lamps */
 .lamp-btn.active {
     background: rgba(47, 129, 247, 0.1);
     border-color: var(--accent-blue);
     color: #fff;
-    box-shadow: 0 0 20px var(--accent-blue-glow), inset 0 0 10px var(--accent-blue-glow);
+    box-shadow: 0 0 2vh var(--accent-blue-glow), inset 0 0 1vh var(--accent-blue-glow);
 }
 
 .lamp-btn.active .icon {
     filter: none;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 1.5vh rgba(255, 255, 255, 0.8);
     transform: scale(1.1);
+}
+
+/* ---------------- MOBILE LAYOUT ---------------- */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1.5vh 1.5vw;
+        gap: 1.5vh;
+    }
+    .dashboard-content {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1.5fr;
+        gap: 1.5vh;
+    }
+    
+    .water-section { padding: 1.5vh 2vw; }
+    .water-section:nth-child(1) { grid-column: 1; grid-row: 1; }
+    .water-section:nth-child(3) { grid-column: 2; grid-row: 1; }
+    
+    .lamps-section {
+        grid-column: 1 / 3;
+        grid-row: 2;
+        padding: 1.5vh 2vw;
+    }
+
+    .telemetry-bar { flex-wrap: nowrap; gap: 1vw; padding: 1vh; }
+    .telemetry-item { flex-direction: column; gap: 0.5vh; padding: 1vh; }
+    .telemetry-icon { margin-bottom: 0px; }
+    
+    .dashboard-header { flex-direction: row; padding: 1vh 2vw; }
+    .dashboard-header h1 { font-size: clamp(1rem, 4vw, 1.5rem); }
+    .datetime-display { font-size: clamp(0.7rem, 3.5vw, 1rem); }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    body { overflow-y: auto; height: auto; min-height: 100dvh; }
+    .dashboard-container { height: 150dvh; }
 }
