@@ -76,6 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Arduino Bağlantı Durumunu Senkronize Et
+            if (!window.arduinoWriter && data.arduinoConnected !== undefined) {
+                const btn = document.getElementById('connectSerialBtn');
+                if (btn) {
+                    if (data.arduinoConnected) {
+                        btn.innerHTML = `<span class="pulse-dot" style="background-color: #2ed573; box-shadow: 0 0 8px rgba(46, 213, 115, 0.6);"></span> Arduino Bağlandı`;
+                        btn.style.color = "#2ed573";
+                        btn.style.borderColor = "#2ed573";
+                    } else {
+                         btn.innerHTML = `<span class="pulse-dot" style="background-color: #ff4757; box-shadow: 0 0 8px rgba(255, 71, 87, 0.6);"></span> Arduino'ya Bağlan`;
+                         btn.style.color = "white";
+                         btn.style.borderColor = "rgba(255,255,255,0.2)";
+                    }
+                }
+            }
+
             // Sensörleri Senkronize Et (Sadece telefondayken yani Web Serial BAĞLI DEĞİLKEN Firebase'den ekrana yazdırırız)
             // Bilgisayardaysak zaten veriyi Serial'den sıcağı sıcağına alıp ekrana yazıyoruz.
             if (!window.arduinoWriter && data.sensors) {
@@ -132,6 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 connectSerialBtn.style.borderColor = "#2ed573";
                 
                 window.arduinoWriter = port.writable.getWriter();
+                
+                // Bağlantı durumunu Firebase'e yaz
+                stateRef.set({ arduinoConnected: true }, { merge: true });
                 
                 // Başlangıçta mevcut durumu Arduino'ya senkronize et (Firebase'deki son hali)
                 Object.keys(lastLampsState).forEach(lampId => {
@@ -203,4 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Okuma hatası:", error);
         }
     }
+
+    // Bilgisayardan sekme kapatıldığında veya çıkıldığında bağlantıyı koptu olarak işaretle
+    window.addEventListener('beforeunload', () => {
+        if (window.arduinoWriter) {
+            // Unload sırasında asenkron istekler iptal olabileceği için navigator.sendBeacon da kullanılabilir ancak set çalışır.
+            stateRef.set({ arduinoConnected: false }, { merge: true });
+        }
+    });
+
 });
