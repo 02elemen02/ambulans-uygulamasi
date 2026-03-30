@@ -134,6 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (connectSerialBtn) {
         connectSerialBtn.addEventListener('click', async () => {
+            if (window.location.protocol === 'file:') {
+                alert("DİKKAT: Web Serial bağlantısı güvenlik sebebiyle dosyaya çift tıklayarak ('file://') açıldığında ÇALIŞMAZ! Lütfen VS Code Live Server gibi bir özellik kullanın veya siteyi Github Pages linkinizden açın.");
+            }
             if (!("serial" in navigator)) {
                 alert("Tarayıcınız Web Serial API desteklemiyor. Lütfen bilgisayardan Google Chrome veya Edge kullanın.");
                 return;
