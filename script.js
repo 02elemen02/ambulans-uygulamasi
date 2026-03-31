@@ -69,13 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const stateRef = db.collection('ambulance').doc('state');
 
     // Firebase Bağlantı Durumu Takibi
-    firebase.database().ref('.info/connected').on('value', (snap) => {
-        if (snap.val() === true) {
-            updateFirebaseUI('online', 'Bağlı');
-        } else {
-            updateFirebaseUI('offline', 'Kesildi');
-        }
-    });
+    if (typeof firebase.database === "function") {
+        firebase.database().ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === true) {
+                updateFirebaseUI('online', 'Bağlı');
+            } else {
+                updateFirebaseUI('online', 'Bağlantı Bekleniyor'); // Çevrimdışı yerine bekleme mesajı
+            }
+        });
+    } else {
+        logToTerminal("Uyarı: Realtime Database SDK yüklenemedi, bağlantı durumu takibi yapılamıyor.", "warning");
+    }
 
     // Başlangıç dökümanı kontrolü
     stateRef.get().then(doc => {
