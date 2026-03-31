@@ -1,140 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Tarih ve Saat Güncellemesi
+    // --- ELEMENTLER ---
     const datetimeDisplay = document.getElementById('datetimeDisplay');
-    function updateDateTime() {
-        if (!datetimeDisplay) return;
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        datetimeDisplay.innerText = now.toLocaleDateString('tr-TR', options);
-    }
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-
-    // Firebase Ayarları
-    const db = firebase.firestore();
-    const stateRef = db.collection('ambulance').doc('state');
+    const firebaseStatus = document.getElementById('firebaseStatus');
+    const connectSerialBtn = document.getElementById('connectSerialBtn');
+    const serialStatusText = document.getElementById('serialStatusText');
+    const terminalOutput = document.getElementById('terminalOutput');
+    const debugTerminal = document.getElementById('debugTerminal');
+    const closeTerminal = document.getElementById('closeTerminal');
+    const toggleTerminal = document.getElementById('toggleTerminal');
     
-    // Uygulama açılışında doküman yoksa boş oluştur
-    stateRef.get().then(doc => {
-        if (!doc.exists) {
-            stateRef.set({ lamps: {}, sensors: {} });
-        }
-    });
-
-    // Lamba ve Donanım Butonları Mantığı
-    const allButtons = document.querySelectorAll('[data-lamp]');
-    
-    allButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const lampId = button.getAttribute('data-lamp');
-            const willBeActive = !button.classList.contains('active');
-            
-            console.log("Buton tıklandı:", lampId, "Yeni durum:", willBeActive);
-
-            // UI'ı hemen güncelle (Hızlı geri bildirim)
-            const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
-            relatedButtons.forEach(btn => {
-                if (willBeActive) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-
-            // Firebase'e gönder (Daha uyumlu yöntemle)
-            var updateObj = { lamps: {} };
-            updateObj.lamps[lampId] = willBeActive;
-            
-            stateRef.set(updateObj, { merge: true })
-                .then(() => console.log("Firebase güncellendi:", lampId))
-                .catch(err => {
-                    console.error("Firebase Hatası:", err);
-                    // Mobilde hatayı görmek için çok kısa bir uyarı
-                    // alert("Bağlantı hatası: " + err.message);
-                });
-            
-            // Titreşim
-            if (navigator.vibrate) {
-                navigator.vibrate(willBeActive ? [50, 50, 50] : 50);
-            }
-        });
-    });
-
-    let lastLampsState = {};
-
-    // Firebase'den Gerçek Zamanlı Dinleme (onSnapshot)
-    stateRef.onSnapshot(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            
-            // Lambaları Senkronize Et
-            if (data.lamps) {
-                Object.keys(data.lamps).forEach(lampId => {
-                    const isActive = data.lamps[lampId];
-                    const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
-                    
-                    // Eğer durum zaten UI ile aynıysa tekrar işlem yapma (Efektlerin bozulmaması için)
-                    const firstBtn = document.querySelector(`[data-lamp="${lampId}"]`);
-                    if (firstBtn && firstBtn.classList.contains('active') === isActive) {
-                        lastLampsState[lampId] = isActive;
-                        return;
-                    }
-
-                    relatedButtons.forEach(btn => {
-                        if (isActive) btn.classList.add('active');
-                        else btn.classList.remove('active');
-                    });
-                    
-                    // Eğer bilgisayardaysak (Web Serial bağlıysa) ve durum Firebase'de yeniyse Arduino'ya gönder
-                    if (window.arduinoWriter && lastLampsState[lampId] !== isActive) {
-                        const command = lampId + "_" + (isActive ? 'ON' : 'OFF') + "\n";
-                        window.arduinoWriter.write(new TextEncoder().encode(command)).catch(err => {
-                            console.error("Arduino'ya komut gönderilemedi:", err);
-                        });
-                    }
-                    
-                    lastLampsState[lampId] = isActive;
-                });
-            }
-
-            // Arduino Bağlantı Durumunu Senkronize Et
-            if (!window.arduinoWriter && data.arduinoConnected !== undefined) {
-                const btn = document.getElementById('connectSerialBtn');
-                if (btn) {
-                    if (data.arduinoConnected) {
-                        btn.innerHTML = `<span class="pulse-dot" style="background-color: #2ed573; box-shadow: 0 0 8px rgba(46, 213, 115, 0.6);"></span> Arduino Bağlandı`;
-                        btn.style.color = "#2ed573";
-                        btn.style.borderColor = "#2ed573";
-                    } else {
-                         btn.innerHTML = `<span class="pulse-dot" style="background-color: #ff4757; box-shadow: 0 0 8px rgba(255, 71, 87, 0.6);"></span> Arduino'ya Bağlan`;
-                         btn.style.color = "white";
-                         btn.style.borderColor = "rgba(255,255,255,0.2)";
-                    }
-                }
-            }
-
-            // Sensörleri Senkronize Et (Sadece telefondayken yani Web Serial BAĞLI DEĞİLKEN Firebase'den ekrana yazdırırız)
-            // Bilgisayardaysak zaten veriyi Serial'den sıcağı sıcağına alıp ekrana yazıyoruz.
-            if (!window.arduinoWriter && data.sensors) {
-                if(data.sensors.battery) document.getElementById('batteryVolt').innerText = data.sensors.battery;
-                if(data.sensors.solar) document.getElementById('solarVolt').innerText = data.sensors.solar;
-                if(data.sensors.temp) document.getElementById('temperature').innerText = data.sensors.temp;
-                
-                if(data.sensors.cleanW !== undefined) {
-                    const cW = parseFloat(data.sensors.cleanW);
-                    const cleanWaterBar = document.getElementById('cleanWaterBar');
-                    const cleanWaterLevel = document.getElementById('cleanWaterLevel');
-                    if(cleanWaterBar) cleanWaterBar.innerText = cW.toFixed(1);
-                    if(cleanWaterLevel) cleanWaterLevel.style.height = `${(cW / 5) * 100}%`;
-                }
-                if(data.sensors.dirtyW !== undefined) {
-                    const dW = parseFloat(data.sensors.dirtyW);
-                    const dirtyWaterBar = document.getElementById('dirtyWaterBar');
-                    const dirtyWaterLevel = document.getElementById('dirtyWaterLevel');
-                    if(dirtyWaterBar) dirtyWaterBar.innerText = dW.toFixed(1);
-                    if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${(dW / 5) * 100}%`;
-                }
-            }
-        }
-    });
-
+    // Telemetri
     const batteryVolt = document.getElementById('batteryVolt');
     const solarVolt = document.getElementById('solarVolt');
     const temperature = document.getElementById('temperature');
@@ -143,20 +18,182 @@ document.addEventListener('DOMContentLoaded', () => {
     const dirtyWaterLevel = document.getElementById('dirtyWaterLevel');
     const dirtyWaterBar = document.getElementById('dirtyWaterBar');
 
-    // Arduino Web Serial Bağlantısı
+    // --- DURUM DEĞİŞKENLERİ ---
+    let lastLampsState = {};
     window.arduinoWriter = null;
     let keepReading = true;
     let reader;
 
-    const connectSerialBtn = document.getElementById('connectSerialBtn');
+    // --- TARİH VE SAAT ---
+    function updateDateTime() {
+        if (!datetimeDisplay) return;
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        datetimeDisplay.innerText = now.toLocaleDateString('tr-TR', options);
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // --- TERMİNAL FONKSİYONLARI ---
+    function logToTerminal(msg, type = 'info') {
+        if (!terminalOutput) return;
+        const time = new Date().toLocaleTimeString('tr-TR');
+        const line = document.createElement('div');
+        line.style.color = type === 'error' ? '#ff4757' : (type === 'success' ? '#2ed573' : '#0f0');
+        line.innerText = `[${time}] ${msg}`;
+        terminalOutput.appendChild(line);
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        
+        // Konsola da yaz
+        if (type === 'error') console.error(msg);
+        else console.log(msg);
+    }
+
+    if(toggleTerminal) toggleTerminal.addEventListener('click', () => debugTerminal.classList.toggle('hidden'));
+    if(closeTerminal) closeTerminal.addEventListener('click', () => debugTerminal.classList.add('hidden'));
+
+    // --- FIREBASE KURULUMU ---
+    function updateFirebaseUI(status, message) {
+        if (!firebaseStatus) return;
+        const dot = firebaseStatus.querySelector('.status-dot');
+        const text = firebaseStatus.querySelector('.status-text');
+        
+        dot.className = 'status-dot ' + status;
+        text.innerText = message;
+        
+        if (status === 'offline') logToTerminal("Firebase Hatası: " + message, 'error');
+        else logToTerminal("Firebase: " + message, 'success');
+    }
+
+    const db = firebase.firestore();
+    const stateRef = db.collection('ambulance').doc('state');
+
+    // Firebase Bağlantı Durumu Takibi
+    firebase.database().ref('.info/connected').on('value', (snap) => {
+        if (snap.val() === true) {
+            updateFirebaseUI('online', 'Bağlı');
+        } else {
+            updateFirebaseUI('offline', 'Kesildi');
+        }
+    });
+
+    // Başlangıç dökümanı kontrolü
+    stateRef.get().then(doc => {
+        if (!doc.exists) {
+            stateRef.set({ lamps: {}, sensors: {}, arduinoConnected: false }, { merge: true })
+                .catch(err => logToTerminal("Firebase Yazma Hatası: " + err.message, 'error'));
+        }
+    }).catch(err => {
+        updateFirebaseUI('offline', 'Erişim Yok');
+        logToTerminal("Firestore Erişilemiyor: " + err.message, 'error');
+    });
+
+    // --- BUTON KONTROLLERİ ---
+    const allButtons = document.querySelectorAll('[data-lamp]');
     
+    allButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const lampId = button.getAttribute('data-lamp');
+            const isActive = !button.classList.contains('active');
+            
+            // Yerel UI Güncelleme
+            updateButtonUI(lampId, isActive);
+
+            // Firebase Güncelleme
+            let updateObj = { lamps: {} };
+            updateObj.lamps[lampId] = isActive;
+            
+            stateRef.set(updateObj, { merge: true })
+                .then(() => logToTerminal(`Buton ${lampId} -> ${isActive ? 'AÇIK' : 'KAPALI'} (Buluta Gönderildi)`))
+                .catch(err => logToTerminal("Bulut Güncelleme Hatası: " + err.message, 'error'));
+            
+            // Titreşim
+            if (navigator.vibrate) navigator.vibrate(isActive ? [30, 30] : 20);
+        });
+    });
+
+    function updateButtonUI(lampId, isActive) {
+        const relatedButtons = document.querySelectorAll(`[data-lamp="${lampId}"]`);
+        relatedButtons.forEach(btn => {
+            if (isActive) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    // --- FIREBASE DİNLEME (SnapShot) ---
+    stateRef.onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        
+        // 1. Lambaları Senkronize Et
+        if (data.lamps) {
+            Object.keys(data.lamps).forEach(lampId => {
+                const isActive = data.lamps[lampId];
+                
+                // Sadece durum değişmişse ve biz yerel olarak zaten yapmamışsak
+                if (lastLampsState[lampId] !== isActive) {
+                    updateButtonUI(lampId, isActive);
+                    
+                    // Eğer Arduino bağlıysa komutu gönder
+                    if (window.arduinoWriter) {
+                        const cmd = `${lampId}_${isActive ? 'ON' : 'OFF'}\n`;
+                        window.arduinoWriter.write(new TextEncoder().encode(cmd)).catch(e => logToTerminal("Arduino Yazma Hatası", 'error'));
+                    }
+                }
+                lastLampsState[lampId] = isActive;
+            });
+        }
+
+        // 2. Arduino Bağlantı Durumu (Eğer biz bağlı değilsek başkasından gelen bilgiyi göster)
+        if (!window.arduinoWriter) {
+            updateSerialUI(data.arduinoConnected || false);
+        }
+
+        // 3. Sensörleri Güncelle (Eğer seri bağlı değilse Firebase'den al)
+        if (!window.arduinoWriter && data.sensors) {
+            updateSensorsUI(data.sensors);
+        }
+    }, err => {
+        logToTerminal("Firebase Dinleme Hatası: " + err.message, 'error');
+    });
+
+    function updateSensorsUI(sensors) {
+        if(sensors.battery && batteryVolt) batteryVolt.innerText = sensors.battery;
+        if(sensors.solar && solarVolt) solarVolt.innerText = sensors.solar;
+        if(sensors.temp && temperature) temperature.innerText = sensors.temp;
+        
+        if(sensors.cleanW !== undefined) {
+            const cW = parseFloat(sensors.cleanW);
+            if(cleanWaterBar) cleanWaterBar.innerText = cW.toFixed(1);
+            if(cleanWaterLevel) cleanWaterLevel.style.height = `${Math.min(100, (cW / 5) * 100)}%`;
+        }
+        if(sensors.dirtyW !== undefined) {
+            const dW = parseFloat(sensors.dirtyW);
+            if(dirtyWaterBar) dirtyWaterBar.innerText = dW.toFixed(1);
+            if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${Math.min(100, (dW / 5) * 100)}%`;
+        }
+    }
+
+    function updateSerialUI(isConnected) {
+        const dot = connectSerialBtn.querySelector('.pulse-dot');
+        if (isConnected) {
+            dot.className = 'pulse-dot connected';
+            serialStatusText.innerText = 'Bağlı';
+            connectSerialBtn.style.color = '#2ed573';
+            connectSerialBtn.style.borderColor = '#2ed573';
+        } else {
+            dot.className = 'pulse-dot disconnected';
+            serialStatusText.innerText = 'Bağlan';
+            connectSerialBtn.style.color = 'white';
+            connectSerialBtn.style.borderColor = 'rgba(255,255,255,0.2)';
+        }
+    }
+
+    // --- ARDUINO WEB SERIAL ---
     if (connectSerialBtn) {
         connectSerialBtn.addEventListener('click', async () => {
-            if (window.location.protocol === 'file:') {
-                alert("DİKKAT: Web Serial bağlantısı güvenlik sebebiyle dosyaya çift tıklayarak ('file://') açıldığında ÇALIŞMAZ! Lütfen VS Code Live Server gibi bir özellik kullanın veya siteyi Github Pages linkinizden açın.");
-            }
             if (!("serial" in navigator)) {
-                alert("Tarayıcınız Web Serial API desteklemiyor. Lütfen bilgisayardan Google Chrome veya Edge kullanın.");
+                alert("Tarayıcınız Web Serial API desteklemiyor. Lütfen Chrome veya Edge kullanın.");
                 return;
             }
 
@@ -164,25 +201,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const port = await navigator.serial.requestPort();
                 await port.open({ baudRate: 9600 });
                 
-                connectSerialBtn.innerHTML = `<span class="pulse-dot" style="background-color: #2ed573; box-shadow: 0 0 8px rgba(46, 213, 115, 0.6);"></span> Arduino Bağlandı`;
-                connectSerialBtn.style.color = "#2ed573";
-                connectSerialBtn.style.borderColor = "#2ed573";
-                
                 window.arduinoWriter = port.writable.getWriter();
+                updateSerialUI(true);
+                logToTerminal("Arduino Bağlantısı Başarılı", 'success');
                 
-                // Bağlantı durumunu Firebase'e yaz
-                stateRef.set({ arduinoConnected: true }, { merge: true });
-                
-                // Başlangıçta mevcut durumu Arduino'ya senkronize et (Firebase'deki son hali)
-                Object.keys(lastLampsState).forEach(lampId => {
-                     const initCmd = `${lampId}_${lastLampsState[lampId] ? 'ON' : 'OFF'}\n`;
-                     window.arduinoWriter.write(new TextEncoder().encode(initCmd)).catch(e=>{});
+                // Başlangıç durumunu gönder
+                Object.keys(lastLampsState).forEach(id => {
+                    const cmd = `${id}_${lastLampsState[id] ? 'ON' : 'OFF'}\n`;
+                    window.arduinoWriter.write(new TextEncoder().encode(cmd)).catch(()=>{});
                 });
 
+                stateRef.set({ arduinoConnected: true }, { merge: true });
                 readLoop(port);
             } catch (err) {
-                console.error("Arduino bağlantı hatası:", err);
-                alert("Bağlantı kurulamadı. Arduino'nun takılı olduğundan ve başka bir uygulamanın portu işgal etmediğinden emin olun.");
+                logToTerminal("Bağlantı Hatası: " + err.message, 'error');
             }
         });
     }
@@ -196,60 +228,48 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             while (keepReading) {
                 const { value, done } = await reader.read();
-                if (done) {
-                    reader.releaseLock();
-                    break;
-                }
+                if (done) break;
+                
                 buffer += value;
                 const lines = buffer.split('\n');
                 buffer = lines.pop(); 
                 
                 lines.forEach(line => {
                     line = line.trim();
+                    if(!line) return;
+                    
+                    logToTerminal("RX: " + line); // Terminale yaz
+
                     if (line.startsWith("DATA:")) {
                         const parts = line.replace("DATA:", "").split(",");
                         if (parts.length === 5) {
-                            const bV = parts[0];
-                            const sV = parts[1];
-                            const tV = parts[2];
-                            const cV = parseFloat(parts[3]);
-                            const dV = parseFloat(parts[4]);
-
-                            if(batteryVolt) batteryVolt.innerText = bV;
-                            if(solarVolt) solarVolt.innerText = sV;
-                            if(temperature) temperature.innerText = tV;
+                            const sensorData = {
+                                battery: parts[0],
+                                solar: parts[1],
+                                temp: parts[2],
+                                cleanW: parseFloat(parts[3]),
+                                dirtyW: parseFloat(parts[4])
+                            };
                             
-                            if(cleanWaterBar) cleanWaterBar.innerText = cV.toFixed(1);
-                            if(dirtyWaterBar) dirtyWaterBar.innerText = dV.toFixed(1);
+                            updateSensorsUI(sensorData);
                             
-                            if(cleanWaterLevel) cleanWaterLevel.style.height = `${(cV / 5) * 100}%`;
-                            if(dirtyWaterLevel) dirtyWaterLevel.style.height = `${(dV / 5) * 100}%`;
-
-                            // Sensör verisini telefondan da görülebilmesi için Firebase'e itiyoruz
-                            stateRef.set({
-                                sensors: {
-                                    battery: bV,
-                                    solar: sV,
-                                    temp: tV,
-                                    cleanW: cV,
-                                    dirtyW: dV
-                                }
-                            }, { merge: true });
+                            // Buluta yolla
+                            stateRef.set({ sensors: sensorData }, { merge: true })
+                                .catch(e => logToTerminal("Sensör Bulut Hatası", 'error'));
                         }
                     }
                 });
             }
         } catch (error) {
-            console.error("Okuma hatası:", error);
+            logToTerminal("Okuma Döngüsü Kırıldı: " + error.message, 'error');
+            updateSerialUI(false);
+            stateRef.set({ arduinoConnected: false }, { merge: true });
         }
     }
 
-    // Bilgisayardan sekme kapatıldığında veya çıkıldığında bağlantıyı koptu olarak işaretle
     window.addEventListener('beforeunload', () => {
         if (window.arduinoWriter) {
-            // Unload sırasında asenkron istekler iptal olabileceği için navigator.sendBeacon da kullanılabilir ancak set çalışır.
             stateRef.set({ arduinoConnected: false }, { merge: true });
         }
     });
-
 });

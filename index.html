@@ -16,10 +16,16 @@
                 <h1>AMBULANS KONTROL SİSTEMİ</h1>
                 <div id="datetimeDisplay" class="datetime-display">Yükleniyor...</div>
             </div>
-            <button id="connectSerialBtn" class="status-indicator" style="cursor: pointer; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white;">
-                <span class="pulse-dot" style="background-color: #ff4757; box-shadow: 0 0 8px rgba(255, 71, 87, 0.6);"></span>
-                Arduino'ya Bağlan
-            </button>
+            <div class="header-status-group">
+                <div id="firebaseStatus" class="status-badge" title="Firebase Bağlantısı">
+                    <span class="status-dot offline"></span>
+                    Bulut: <span class="status-text">Bağlanıyor...</span>
+                </div>
+                <button id="connectSerialBtn" class="status-indicator serial-btn" title="Arduino USB Bağlantısı">
+                    <span class="pulse-dot disconnected"></span>
+                    Arduino: <span id="serialStatusText">Bağlan</span>
+                </button>
+            </div>
         </header>
 
         <!-- Sensör Değerleri (Telemetri) -->
@@ -116,6 +122,18 @@
                 </div>
             </section>
         </main>
+
+        <!-- Debug Terminal (Hidden by default) -->
+        <div id="debugTerminal" class="debug-terminal hidden">
+            <div class="terminal-header">
+                <span>SERİ TERMİNAL (Ham Veri)</span>
+                <button id="closeTerminal">✕</button>
+            </div>
+            <div id="terminalOutput" class="terminal-content"></div>
+        </div>
+        
+        <!-- Toggle Terminal Button -->
+        <button id="toggleTerminal" class="terminal-toggle-btn" title="Terminali Göster/Gizle">📟</button>
     </div>
 
     <!-- Firebase SDK'ları -->
