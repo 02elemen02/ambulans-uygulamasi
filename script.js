@@ -68,29 +68,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const stateRef = db.collection('ambulance').doc('state');
 
+    // --- FIREBASE GİRİŞ (Anonim) ---
+    firebase.auth().signInAnonymously()
+        .then(() => {
+            logToTerminal("Firebase: Misafir Girişi Başarılı", "success");
+            loadInitialData();
+        })
+        .catch((error) => {
+            logToTerminal("Firebase Giriş Hatası: " + error.message, "error");
+            updateFirebaseUI('offline', 'Giriş Başarısız');
+        });
+
+    function loadInitialData() {
+        // Başlangıç dökümanı kontrolü
+        stateRef.get().then(doc => {
+            if (!doc.exists) {
+                stateRef.set({ lamps: {}, sensors: {}, arduinoConnected: false }, { merge: true })
+                    .catch(err => logToTerminal("Firebase Yazma Hatası: " + err.message, 'error'));
+            }
+        }).catch(err => {
+            updateFirebaseUI('offline', 'Erişim Yok');
+            logToTerminal("Firestore Erişilemiyor: " + err.message, 'error');
+            logToTerminal("İpucu: Firebase Console'dan 'Firestore Rules' kısmını kontrol edin.", "warning");
+        });
+    }
+
     // Firebase Bağlantı Durumu Takibi
     if (typeof firebase.database === "function") {
         firebase.database().ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 updateFirebaseUI('online', 'Bağlı');
             } else {
-                updateFirebaseUI('online', 'Bağlantı Bekleniyor'); // Çevrimdışı yerine bekleme mesajı
+                updateFirebaseUI('online', 'Bağlantı Bekleniyor'); 
             }
         });
     } else {
-        logToTerminal("Uyarı: Realtime Database SDK yüklenemedi, bağlantı durumu takibi yapılamıyor.", "warning");
+        logToTerminal("Uyarı: Realtime Database SDK yüklenemedi.", "warning");
     }
-
-    // Başlangıç dökümanı kontrolü
-    stateRef.get().then(doc => {
-        if (!doc.exists) {
-            stateRef.set({ lamps: {}, sensors: {}, arduinoConnected: false }, { merge: true })
-                .catch(err => logToTerminal("Firebase Yazma Hatası: " + err.message, 'error'));
-        }
-    }).catch(err => {
-        updateFirebaseUI('offline', 'Erişim Yok');
-        logToTerminal("Firestore Erişilemiyor: " + err.message, 'error');
-    });
 
     // --- BUTON KONTROLLERİ ---
     const allButtons = document.querySelectorAll('[data-lamp]');
